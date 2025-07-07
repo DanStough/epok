@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -72,5 +74,21 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		log.Print("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+// bindFlags all the flags to viper, but it won't inherit the required behavior
+// https://github.com/spf13/viper/issues/397. This function should be called as part
+// of the preExecution phase.
+func bindFlags(cmd *cobra.Command) {
+	f := cmd.Flags()
+	normalizeFunc := f.GetNormalizeFunc()
+	f.SetNormalizeFunc(func(fs *pflag.FlagSet, name string) pflag.NormalizedName {
+		result := normalizeFunc(fs, name)
+		name = strings.ReplaceAll(string(result), "-", "_")
+		return pflag.NormalizedName(name)
+	})
+	if err := viper.BindPFlags(f); err != nil {
+		fmt.Println("Error binding flags:", err)
 	}
 }

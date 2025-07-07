@@ -1,8 +1,8 @@
 package buildinfo
 
 var (
-	// The git commit that was compiled. In will be filled in by the
-	// compiler.
+	// The git commit that was compiled.
+	//It will be filled in by the compiler.
 	gitCommit string
 
 	// The semver git tag associated with this release.

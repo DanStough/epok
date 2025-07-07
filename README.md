@@ -16,12 +16,28 @@ You can install the tool directly if you have a Go installation >= 1.24:
 go install github.com/DanStough/epok@latest
 ```
 
+## Development
+
+> [!IMPORTANT]  
+> Tests require the use of the experimental `testing/synctest` package.
+> You will need to configure your Go environment with `GOEXPERIMENT=synctest`.
+> Setting `GOTRACEBACK=all` can also be helpful for debugging synctest errors ([Go #70911](https://github.com/golang/go/issues/70911)).
+
+For now, you can use the vanilla Go commands for building and testing: 
+```bash
+# Run
+go run . parse --help
+
+# Test
+go test -v ./...
+```
+
 ## TODO
 
 ### MVP
-* [ ] `parse` command
+* [X] `parse` command
   * [X]  Outputs UTC and local system time from arg
-  * [ ]  Outputs UTC and local system time from stdin
+  * [X]  Outputs UTC and local system time from stdin
 * [ ] `now` command to return the instantaneous timestamp.
   * [ ] `-p,--precision` to specify the precision
 * [ ]  Lipgloss for styling

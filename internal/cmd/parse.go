@@ -1,13 +1,13 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 
 	"github.com/DanStough/epok/parse"
 )
@@ -21,24 +21,19 @@ func newParseCmd() *cobra.Command {
 		Long: `Use the parse command to convert unix epoch timestamps into human-readable date-times or 
 other formats. It can handle timestamps in various precisions and formats.`,
 		GroupID: groupIDEpochCommands,
-		Example: `epok parse 1751074598`,
+		Example: `# fuzzy-parse timestamp
+epok parse 1751074598
 
-		Args: cobra.ExactArgs(1), // TODO: this will need to change when stdin is supported
+# Read from stdin
+pbpaste | epoch parse`,
 
-		PreRun: func(cmd *cobra.Command, args []string) {
-			// This binds all of the flags to viper, but it won't inherit the required behavior
-			// https://github.com/spf13/viper/issues/397
-			f := cmd.Flags()
-			normalizeFunc := f.GetNormalizeFunc()
-			f.SetNormalizeFunc(func(fs *pflag.FlagSet, name string) pflag.NormalizedName {
-				result := normalizeFunc(fs, name)
-				name = strings.ReplaceAll(string(result), "-", "_")
-				return pflag.NormalizedName(name)
-			})
-			viper.BindPFlags(f)
+		Args: cobra.MaximumNArgs(1),
+
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			bindFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return parseArg(args[0])
+			return runParse(cmd, args)
 		},
 		SilenceUsage: true,
 	}
@@ -46,21 +41,78 @@ other formats. It can handle timestamps in various precisions and formats.`,
 	return parseCmd
 }
 
-func parseArg(s string) error {
-	tLocal, err := parse.String(s)
-	if err != nil {
-		return err
+func runParse(cmd *cobra.Command, args []string) error {
+	var input string
+	var err error
+	if len(args) == 0 {
+		input, err = readFromStdin(cmd)
+		if err != nil {
+			return err
+		}
+	} else {
+		input = args[0]
 	}
 
-	tUTC := tLocal.In(time.UTC)
-	now := time.Now()
-	diff := now.Sub(tLocal)
+	timestamp, err := parse.String(strings.TrimSpace(input))
+	if err != nil {
+		return fmt.Errorf("could not parse input: %w", err)
+	}
 
-	fmt.Println("Local: ", tLocal.Weekday(), tLocal.Month(), tLocal.Day(), tLocal.Year(), tLocal.Hour(), tLocal.Minute(), tLocal.Second())
-	fmt.Println("UTC: ", tUTC.Weekday(), tUTC.Month(), tUTC.Day(), tUTC.Year(), tUTC.Hour(), tUTC.Minute(), tUTC.Second())
+	return writeEpoch(cmd, timestamp)
+}
+
+func readFromStdin(cmd *cobra.Command) (string, error) {
+	reader := cmd.InOrStdin()
+
+	inputChan := make(chan string)
+	// We don't want to block on the error, so we use a buffered channel to allow cleanup.
+	errChan := make(chan error, 1)
+
+	// We run in a separate goroutine so we can still respond to
+	// context cancellations.
+	go func() {
+		defer close(inputChan)
+		defer close(errChan)
+
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			// Since this is buffered, we can send the error without blocking
+			// and clean up the goroutine. This is useful for testing.
+			errChan <- err
+			return
+		}
+		inputChan <- string(data)
+	}()
+
+	ctx := cmd.Context()
+	var input string
+	select {
+	case err := <-errChan:
+		return "", err
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case input = <-inputChan:
+		// Fallthrough with assignment to input
+	}
+
+	return input, nil
+}
+
+func writeEpoch(cmd *cobra.Command, tsLocal time.Time) error {
+	tUTC := tsLocal.In(time.UTC)
+	now := time.Now()
+	diff := now.Sub(tsLocal)
+
+	var errs error
+
+	_, err := fmt.Fprintln(cmd.OutOrStdout(), "Local: ", tsLocal.Weekday(), tsLocal.Month(), tsLocal.Day(), tsLocal.Year(), tsLocal.Hour(), tsLocal.Minute(), tsLocal.Second())
+	errs = errors.Join(errs, err)
+
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), "UTC: ", tUTC.Weekday(), tUTC.Month(), tUTC.Day(), tUTC.Year(), tUTC.Hour(), tUTC.Minute(), tUTC.Second())
+	errs = errors.Join(errs, err)
 
 	// TODO (dans): format this with the optional year and day.
 	// This will need to take into consideration leap days and seconds.
-	fmt.Println("Relative: ", diff, "ago")
-	return nil
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Relative: ", diff, "ago")
+	return errors.Join(errs, err)
 }
