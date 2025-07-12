@@ -28,5 +28,14 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# Temporary Files
+tmp/
+
+# Added by goreleaser init:
+dist/
+
+# MacOS
+.DS_Store
