@@ -12,6 +12,10 @@ require (
 	github.com/stretchr/testify v1.10.0
 )
 
+// Hopefully this is a short-term hack to get around the blocking call to STDIN
+// https://github.com/charmbracelet/fang/issues/60
+replace github.com/charmbracelet/fang v0.3.0 => github.com/DanStough/fang v0.0.0-20250712175202-05dffdcddda6
+
 require (
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta1 // indirect

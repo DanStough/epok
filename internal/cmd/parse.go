@@ -62,9 +62,7 @@ func runParse(cmd *cobra.Command, args []string) error {
 }
 
 func readFromStdin(cmd *cobra.Command) (string, error) {
-	reader := cmd.InOrStdin()
-
-	inputChan := make(chan string)
+	inputChan := make(chan string, 1)
 	// We don't want to block on the error, so we use a buffered channel to allow cleanup.
 	errChan := make(chan error, 1)
 
@@ -74,6 +72,7 @@ func readFromStdin(cmd *cobra.Command) (string, error) {
 		defer close(inputChan)
 		defer close(errChan)
 
+		reader := cmd.InOrStdin()
 		data, err := io.ReadAll(reader)
 		if err != nil {
 			// Since this is buffered, we can send the error without blocking
@@ -87,10 +86,10 @@ func readFromStdin(cmd *cobra.Command) (string, error) {
 	ctx := cmd.Context()
 	var input string
 	select {
-	case err := <-errChan:
-		return "", err
 	case <-ctx.Done():
 		return "", ctx.Err()
+	case err := <-errChan:
+		return "", err
 	case input = <-inputChan:
 		// Fallthrough with assignment to input
 	}

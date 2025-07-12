@@ -19,7 +19,7 @@ func main() {
 
 // execute adds all child commands to the root command and sets flags appropriately.
 func execute() error {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
 	rootCmd := cmd.NewRootCMD()

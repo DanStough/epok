@@ -57,7 +57,6 @@ func Test_Parse(t *testing.T) {
 		},
 	}
 
-	// TODO (dans): refactor out the run method
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			parseCmd := newParseCmd()

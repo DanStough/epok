@@ -1,5 +1,6 @@
 # epok
 A CLI for working with Unix Timestamps inspired by [epochconverter.com](https://www.epochconverter.com).
+Also kind of like Unix `date`, but for slightly smoother brains.
 
 Built with great open source libraries:
 * [spf13/cobra](https://github.com/spf13/cobra)
@@ -60,9 +61,10 @@ go test -v ./...
 
 ### Future
 * [ ] Output Mode: `json`
+* [ ] golintci + CI
 * [ ]  `at` command for generating a unix timestamp from multiple formats.
 * [ ] Add "preferred timezones" to the config file, which are used when outputing 
 human readable information.
 * [ ] batch process multiple timestamps and return tabular delta 
-* [ ] built-in copy/paste functionality (yes, I know `pbcopy`/`pbpaste` is a thing)
+* [X] ~built-in copy/paste functionality (yes, I know `pbcopy`/`pbpaste` is a thing)~ now I'm thinking this doesn't make much sense if you can read from stdin.
 * [ ] "default" command - alias your favorite command in the tool
