@@ -10,6 +10,24 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
+
+	"github.com/DanStough/epok/internal/styles"
+)
+
+const (
+	asciiName = `
+ /$$$$$$$$                     /$$      
+| $$_____/                    | $$      
+| $$        /$$$$$$   /$$$$$$ | $$   /$$
+| $$$$$    /$$__  $$ /$$__  $$| $$  /$$/
+| $$__/   | $$  \ $$| $$  \ $$| $$$$$$/ 
+| $$      | $$  | $$| $$  | $$| $$_  $$ 
+| $$$$$$$$| $$$$$$$/|  $$$$$$/| $$ \  $$
+|________/| $$____/  \______/ |__/  \__/
+          | $$                          
+          | $$                          
+          |__/                          
+`
 )
 
 var cfgFile string
@@ -22,10 +40,20 @@ const (
 func NewRootCMD() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 
+	isInteractive := term.IsTerminal(int(os.Stdout.Fd()))
+
+	banner := ""
+	if isInteractive {
+		sheet := styles.NewEpokTheme().Sheet()
+		banner = sheet.Banner.Render(asciiName)
+	}
+
 	rootCmd := &cobra.Command{
 		Use:   "epok",
 		Short: "a tool for working with unix epoch timestamps",
-		Long: `epok is a command line tool for viewing 👀 and generating unix epoch timestamps.
+		Long: banner +
+			`
+epok is a command line tool for viewing 👀 and generating unix epoch timestamps.
 
 Some things you can do with epok:
   - fuzzy-parse timestamps from multiple precisions into human readable date-times.

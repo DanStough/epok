@@ -163,6 +163,7 @@ type scheme struct {
 	Text        color.Color
 	TextSubdued color.Color
 	TextKeyword color.Color
+	TextBanner  color.Color
 
 	TableBorder            color.Color
 	TableCellText          color.Color
@@ -179,6 +180,7 @@ func (t *Theme) epokColorScheme() scheme {
 		Text:        c(t.LightTheme.Text, t.DarkTheme.Text),
 		TextSubdued: c(t.LightTheme.TextSubdued, t.DarkTheme.TextSubdued),
 		TextKeyword: c(t.LightTheme.Accent, t.DarkTheme.Accent),
+		TextBanner:  t.Primary,
 
 		TableBorder:            t.Primary,
 		TableCellText:          c(t.LightTheme.Text, t.DarkTheme.Text),
@@ -192,6 +194,7 @@ type Sheet struct {
 	Text        lipgloss.Style
 	TextSubdued lipgloss.Style
 	Keyword     lipgloss.Style
+	Banner      lipgloss.Style
 
 	Table TableStyle
 }
@@ -220,6 +223,8 @@ func (t *Theme) Sheet() *Sheet {
 		Keyword: lipgloss.NewStyle().
 			Foreground(es.TextKeyword).
 			Bold(true),
+		Banner: lipgloss.NewStyle().
+			Foreground(es.TextBanner),
 
 		Table: TableStyle{
 			Header:          lipgloss.NewStyle().Foreground(es.TableBorder).Bold(true).Align(lipgloss.Center),
