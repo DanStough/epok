@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/charmbracelet/fang"
+	"github.com/DanStough/fang"
 
 	"github.com/DanStough/epok/internal/buildinfo"
 	"github.com/DanStough/epok/internal/cmd"

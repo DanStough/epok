@@ -4,9 +4,11 @@ go 1.24.0
 
 toolchain go1.24.4
 
+// Hopefully this is a short-term hack to get around the blocking call to STDIN
+// https://github.com/charmbracelet/fang/issues/60
 require (
-	github.com/charmbracelet/fang v0.3.0
-	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta1
+	github.com/DanStough/fang v0.0.0-20250722153213-19dbaa552f71
+	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.2.0.20250707173510-045a87bf1420
 	github.com/charmbracelet/x/exp/charmtone v0.0.0-20250702191427-5bdfc8f2e4ff
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/spf13/cobra v1.9.1
@@ -15,10 +17,6 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/term v0.33.0
 )
-
-// Hopefully this is a short-term hack to get around the blocking call to STDIN
-// https://github.com/charmbracelet/fang/issues/60
-replace github.com/charmbracelet/fang v0.3.0 => github.com/DanStough/fang v0.0.0-20250712175202-05dffdcddda6
 
 require (
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
