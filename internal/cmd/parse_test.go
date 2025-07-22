@@ -11,6 +11,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+
+	// This is 1751770507 relative to a "now" of 2000-01-01 0:00
+	afterOutput = `LOCALE    DATE                      TIME
+Local     Saturday, July 5, 2025    22:55:07-04:00
+UTC       Sunday, July 6, 2025      02:55:07Z
+
+Relative: 223634h55m7s from now`
+
+	// This is 946080000 relative to a "now" of 2000-01-01 0:00
+	beforeOutput = `LOCALE    DATE                           TIME
+Local     Friday, December 24, 1999      19:00:00-05:00
+UTC       Saturday, December 25, 1999    00:00:00Z
+
+Relative: 168h0m0s ago`
+)
+
 // Test_Parse covers basic command functionality and validation.
 func Test_Parse(t *testing.T) {
 	testCases := []struct {
@@ -24,25 +41,48 @@ func Test_Parse(t *testing.T) {
 		{
 			name: "happy path - valid unix timestamp arg",
 			args: []string{
+				"parse",
 				"1751770507\n",
 			},
 			expectedOutput: []string{
-				"Local:  Saturday July 5 2025 22 55 7",
-				"UTC:  Sunday July 6 2025 2 55 7",
+				afterOutput,
 			},
 		},
 		{
 			name: "happy path - valid unix timestamp stdin",
-			args: []string{},
-			in:   "1751770507\n",
+			args: []string{
+				"parse",
+			},
+			in: "1751770507\n",
 			expectedOutput: []string{
-				"Local:  Saturday July 5 2025 22 55 7",
-				"UTC:  Sunday July 6 2025 2 55 7",
+				afterOutput,
+			},
+		},
+		{
+			name: "happy path - timestamp is before 'now'",
+			args: []string{
+				"parse",
+			},
+			in: "946080000\n",
+			expectedOutput: []string{
+				beforeOutput,
+			},
+		},
+		{
+			name: "happy path - JSON output",
+			args: []string{
+				"parse",
+				"-ojson",
+			},
+			in: "1751770507\n",
+			expectedOutput: []string{
+				"{\"Locales\":[{\"Name\":\"Local\",\"Time\":\"2025-07-05T22:55:07-04:00\"},{\"Name\":\"UTC\",\"Time\":\"2025-07-06T02:55:07Z\"}],\"Now\":\"1999-12-31T19:00:00-05:00\"}",
 			},
 		},
 		{
 			name: "invalid argument",
 			args: []string{
+				"parse",
 				"orange",
 			},
 			expectedError: "could not parse input: invalid timestamp format",
@@ -50,6 +90,7 @@ func Test_Parse(t *testing.T) {
 		{
 			name: "too many arguments",
 			args: []string{
+				"parse",
 				"1751770507",
 				"1751770508",
 			},
@@ -58,40 +99,43 @@ func Test_Parse(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			parseCmd := newParseCmd()
-			parseCmd.SetArgs(tc.args)
+		// Using synctest here means the relative time in the output is fixed
+		synctest.Run(func() {
+			t.Run(tc.name, func(t *testing.T) {
+				cmd := NewRootCMD()
+				cmd.SetArgs(tc.args)
 
-			inStream := bytes.NewBufferString(tc.in)
-			parseCmd.SetIn(inStream)
+				inStream := bytes.NewBufferString(tc.in)
+				cmd.SetIn(inStream)
 
-			outStream := bytes.NewBufferString("")
-			parseCmd.SetOut(outStream)
+				outStream := bytes.NewBufferString("")
+				cmd.SetOut(outStream)
 
-			errorStream := bytes.NewBufferString("")
-			parseCmd.SetErr(errorStream)
+				errorStream := bytes.NewBufferString("")
+				cmd.SetErr(errorStream)
 
-			err := parseCmd.Execute()
-			if tc.expectedError != "" {
-				require.EqualError(t, err, tc.expectedError)
-			} else {
+				err := cmd.Execute()
+				if tc.expectedError != "" {
+					require.EqualError(t, err, tc.expectedError)
+				} else {
+					require.NoError(t, err)
+				}
+
+				output, err := io.ReadAll(outStream)
 				require.NoError(t, err)
-			}
 
-			output, err := io.ReadAll(outStream)
-			require.NoError(t, err)
+				// Usually the error returned from cmd.Execute is the same thing
+				// return on STDERR.
+				errors, err := io.ReadAll(errorStream)
+				require.NoError(t, err)
 
-			// Usually the error returned from cmd.Execute is the same thing
-			// return on STDERR.
-			errors, err := io.ReadAll(errorStream)
-			require.NoError(t, err)
+				t.Logf("STDOUT:\n%s\n", output)
+				t.Logf("STDERR:\n%s\n", errors)
 
-			t.Logf("STDOUT:\n%s\n", output)
-			t.Logf("STDERR:\n%s\n", errors)
-
-			for _, expectedOutput := range tc.expectedOutput {
-				require.Contains(t, string(output), expectedOutput)
-			}
+				for _, expectedOutput := range tc.expectedOutput {
+					require.Contains(t, string(output), expectedOutput)
+				}
+			})
 		})
 	}
 }

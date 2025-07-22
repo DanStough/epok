@@ -9,6 +9,7 @@ import (
 
 	"github.com/DanStough/epok/internal/buildinfo"
 	"github.com/DanStough/epok/internal/cmd"
+	"github.com/DanStough/epok/internal/styles"
 )
 
 func main() {
@@ -23,8 +24,10 @@ func execute() error {
 	defer stop()
 
 	rootCmd := cmd.NewRootCMD()
+	theme := styles.NewEpokTheme()
 	return fang.Execute(ctx, rootCmd,
 		fang.WithCommit(buildinfo.GetCommit()),
 		fang.WithVersion(buildinfo.GetVersion()),
+		fang.WithColorSchemeFunc(theme.FangColorScheme),
 	)
 }

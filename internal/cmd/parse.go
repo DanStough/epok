@@ -1,15 +1,25 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
+	"text/tabwriter"
 	"time"
 
+	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/lipgloss/v2/table"
 	"github.com/spf13/cobra"
 
+	"github.com/DanStough/epok/internal/styles"
 	"github.com/DanStough/epok/parse"
+)
+
+const (
+	RFC3339NanoTime = "15:04:05.999999999Z07:00"
 )
 
 // newParseCmd creates the parse subcommand.
@@ -58,7 +68,28 @@ func runParse(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not parse input: %w", err)
 	}
 
-	return writeEpoch(cmd, timestamp)
+	// TODO: consider having this load from a config
+	locales := map[string]*time.Location{
+		"Local": time.Local,
+		"UTC":   time.UTC,
+	}
+
+	out := newParseOutput(timestamp, locales)
+	mode, err := getOutput()
+	if err != nil {
+		return err
+	}
+
+	switch mode {
+	case OutputPretty:
+		return out.writePretty(cmd.OutOrStdout())
+	case OutputSimple:
+		return out.writeSimple(cmd.OutOrStdout())
+	case OutputJson:
+		return out.writeJson(cmd.OutOrStdout())
+	default:
+		return fmt.Errorf("unexpected output format: %s", mode)
+	}
 }
 
 func readFromStdin(cmd *cobra.Command) (string, error) {
@@ -97,21 +128,132 @@ func readFromStdin(cmd *cobra.Command) (string, error) {
 	return input, nil
 }
 
-func writeEpoch(cmd *cobra.Command, tsLocal time.Time) error {
-	tUTC := tsLocal.In(time.UTC)
-	now := time.Now()
-	diff := now.Sub(tsLocal)
+type parseOutput struct {
+	Locales []Locale
 
+	// Derived
+	Now time.Time
+
+	relative time.Duration // TODO: make this public so it can be rendered in JSON once we decide on a format
+}
+
+type Locale struct {
+	Name string
+	Time time.Time
+}
+
+func newParseOutput(input time.Time, localesByTz map[string]*time.Location) *parseOutput {
+	now := time.Now()
+
+	localesByTime := make([]Locale, 0, len(localesByTz))
+	for name, loc := range localesByTz {
+		l := Locale{
+			Name: name,
+			Time: input.In(loc),
+		}
+		localesByTime = append(localesByTime, l)
+	}
+	sort.Slice(localesByTime, func(i, j int) bool { return localesByTime[i].Name < localesByTime[j].Name })
+
+	return &parseOutput{
+		Now:     now,
+		Locales: localesByTime,
+
+		relative: now.Sub(input),
+	}
+}
+
+func (o *parseOutput) writeSimple(w io.Writer) error {
 	var errs error
 
-	_, err := fmt.Fprintln(cmd.OutOrStdout(), "Local: ", tsLocal.Weekday(), tsLocal.Month(), tsLocal.Day(), tsLocal.Year(), tsLocal.Hour(), tsLocal.Minute(), tsLocal.Second())
+	tw := tabwriter.NewWriter(w, 0, 0, 4, ' ', tabwriter.TabIndent)
+	_, err := fmt.Fprintf(tw, "%s\t%s\t%s\n", "LOCALE", "DATE", "TIME")
 	errs = errors.Join(errs, err)
 
-	_, err = fmt.Fprintln(cmd.OutOrStdout(), "UTC: ", tUTC.Weekday(), tUTC.Month(), tUTC.Day(), tUTC.Year(), tUTC.Hour(), tUTC.Minute(), tUTC.Second())
+	for _, locale := range o.Locales {
+		_, err = fmt.Fprintf(tw, "%s\t%s\t%s\n", locale.Name, formatDate(locale.Time), locale.Time.Format(RFC3339NanoTime))
+		errs = errors.Join(errs, err)
+	}
+
+	duration, label := formatLocalDiff(o.relative)
+	_, err = fmt.Fprintf(tw, "\nRelative: %s %s\n", duration, label)
 	errs = errors.Join(errs, err)
 
-	// TODO (dans): format this with the optional year and day.
-	// This will need to take into consideration leap days and seconds.
-	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Relative: ", diff, "ago")
+	return errs
+}
+
+func (o *parseOutput) writePretty(w io.Writer) error {
+	sheet := styles.NewEpokTheme().Sheet()
+
+	rows := make([][]string, 0, len(o.Locales))
+	for _, locale := range o.Locales {
+		rows = append(rows, []string{locale.Name, formatDate(locale.Time), locale.Time.Format(RFC3339NanoTime)})
+	}
+
+	t := table.New().
+		Border(sheet.Table.BorderThickness).
+		BorderStyle(sheet.Table.Border).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			var style lipgloss.Style
+
+			switch {
+			case row == table.HeaderRow:
+				return sheet.Table.Header
+			case row%2 == 0:
+				style = sheet.Table.EvenRow
+			default:
+				style = sheet.Table.OddRow
+			}
+
+			// TODO (dans): these need to change if we make the timezones configurable
+			switch col {
+			case 0:
+				style = style.Width(8)
+			case 1:
+				style = style.Width(32)
+			case 2:
+				style = style.Width(28)
+			}
+
+			return style
+		}).
+		// TODO (dans): timezone could be a separate field
+		Headers("Locale", "Date", "Time").
+		Rows(rows...)
+
+	var errs error
+	_, err := lipgloss.Fprintln(w, t)
+	errs = errors.Join(errs, err)
+
+	duration, label := formatLocalDiff(o.relative)
+	_, err = fmt.Fprintln(w, sheet.Keyword.Render("Relative:"), sheet.Text.Render(duration), sheet.TextSubdued.Italic(true).Render(label))
 	return errors.Join(errs, err)
+}
+
+func (o *parseOutput) writeJson(w io.Writer) error {
+	bytes, err := json.Marshal(o)
+	if err != nil {
+		return fmt.Errorf("could not marshal parse output JSON: %w", err)
+	}
+	_, err = w.Write(bytes)
+	if err != nil {
+		return fmt.Errorf("could not write parse output: %w", err)
+	}
+	return nil
+}
+
+func formatDate(t time.Time) string {
+	return fmt.Sprintf("%s, %s %d, %d", t.Weekday(), t.Month(), t.Day(), t.Year())
+}
+
+// TODO: break this down by year and day. The highest unit is currently hour.
+// This will need to take into consideration leap days and seconds.
+func formatLocalDiff(diff time.Duration) (string, string) {
+	label := "ago"
+	if diff < 0 {
+		diff = diff.Abs()
+		label = "from now"
+	}
+
+	return diff.String(), label
 }

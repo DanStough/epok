@@ -10,3 +10,7 @@ Here is a good article about why [readers aren't really cancelable](https://benj
 ## Writing tests with `synctest`
 AS usual, the Go docs were pretty good, including this [blog post](https://go.dev/blog/synctest) about the feature.
 I also found this [blog post](https://victoriametrics.com/blog/go-synctest/) helpful to understand some of the constraints.
+
+## Styles are HARD
+Not a lot to say here, but if you look at the comments in ../internal/styles/styles.go, you'll see that there end up being a lot of thought in that package.
+Styling without browser primitives is a lot of inline work.

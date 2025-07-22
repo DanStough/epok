@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"golang.org/x/term"
 )
 
 var cfgFile string
@@ -36,8 +37,14 @@ See the GitHub repository for more information: https://github.com/DanStough/epo
 epok parse 1751074598`,
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.epok.yaml)")
+	// Persistent Flags
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "",
+		"config file (default is $HOME/.epok.yaml)")
+	rootCmd.PersistentFlags().StringP("output", "o", "pretty",
+		"output format. Non-interactive outputs will automatically be downgraded to "+
+			"\"simple\" Valid options are : pretty (default), simple, json")
 
+	// Groups
 	groups := []*cobra.Group{
 		{
 			ID:    groupIDEpochCommands,
@@ -45,7 +52,8 @@ epok parse 1751074598`,
 		},
 	}
 	rootCmd.AddGroup(groups...)
-	// Add subcommands here
+
+	// Subcommands
 	rootCmd.AddCommand(newParseCmd())
 
 	return rootCmd
@@ -91,4 +99,32 @@ func bindFlags(cmd *cobra.Command) {
 	if err := viper.BindPFlags(f); err != nil {
 		fmt.Println("Error binding flags:", err)
 	}
+}
+
+type Output string
+
+const (
+	OutputJson   Output = "json"
+	OutputPretty Output = "pretty"
+	OutputSimple Output = "simple"
+)
+
+func getOutput() (Output, error) {
+	str := viper.GetString("output")
+	output := Output(str)
+
+	switch output {
+	case OutputJson, OutputPretty, OutputSimple:
+		// continue
+	default:
+		return "", fmt.Errorf("invalid output flag: %s", output)
+	}
+
+	isInteractive := term.IsTerminal(int(os.Stdout.Fd()))
+
+	// Downgrade styling for non-interactive terminals
+	if !isInteractive && output == OutputPretty {
+		output = OutputSimple
+	}
+	return output, nil
 }
