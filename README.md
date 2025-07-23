@@ -26,6 +26,10 @@ You can install the tool directly if you have a Go installation >= 1.21:
 go install github.com/DanStough/epok@latest
 ```
 
+## Documentation
+
+Run `epok help`.
+
 ## Development
 
 > [!IMPORTANT]  
@@ -49,11 +53,14 @@ go test -v ./...
   * [X]  Outputs UTC and local system time from arg
   * [X]  Outputs UTC and local system time from stdin
 * [X]  Lipgloss for styling
-* [ ] `now` command to return the instantaneous timestamp.
-  * [ ] `-p,--precision` to specify the precision
+* [X] `now` command to return the instantaneous timestamp.
+  * [X] `-p,--precision` to specify the precision
 * [X] `go install` instructions
 * [X] Version command (handled by `fang`)
-* [ ] Flair: GIF + Ascii Art
+* [ ] Flair: GIF + ~Ascii Art~
+* [ ] CI
+  * [ ] go releaser
+* [ ] homebrew tap
 
 ### Part 1
 * [ ] Makefile, Taskfile or `Just` to build
@@ -64,10 +71,8 @@ go test -v ./...
   * [ ] show current system timezone
 * [X] Output Mode: `simple` - something that can be copy/pasted
 * [ ] CI
-  * [ ] go releaser
   * [ ] go test
   * [ ] conventional commits check
-* [ ] homebrew tap
 
 ### Future
 * [ ] `between` command - compare two timestamps

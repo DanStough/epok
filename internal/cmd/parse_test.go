@@ -30,14 +30,7 @@ Relative: 168h0m0s ago`
 
 // Test_Parse covers basic command functionality and validation.
 func Test_Parse(t *testing.T) {
-	testCases := []struct {
-		name string
-		args []string
-		in   string
-
-		expectedError  string
-		expectedOutput []string
-	}{
+	testCases := []testCase{
 		{
 			name: "happy path - valid unix timestamp arg",
 			args: []string{
@@ -76,7 +69,7 @@ func Test_Parse(t *testing.T) {
 			},
 			in: "1751770507\n",
 			expectedOutput: []string{
-				"{\"Locales\":[{\"Name\":\"Local\",\"Time\":\"2025-07-05T22:55:07-04:00\"},{\"Name\":\"UTC\",\"Time\":\"2025-07-06T02:55:07Z\"}],\"Now\":\"1999-12-31T19:00:00-05:00\"}",
+				"{\"Epoch\":\"1751770507\",\"Locales\":[{\"Name\":\"Local\",\"Time\":\"2025-07-05T22:55:07-04:00\"},{\"Name\":\"UTC\",\"Time\":\"2025-07-06T02:55:07Z\"}],\"Now\":\"1999-12-31T19:00:00-05:00\"}",
 			},
 		},
 		{
@@ -99,44 +92,7 @@ func Test_Parse(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		// Using synctest here means the relative time in the output is fixed
-		synctest.Run(func() {
-			t.Run(tc.name, func(t *testing.T) {
-				cmd := NewRootCMD()
-				cmd.SetArgs(tc.args)
-
-				inStream := bytes.NewBufferString(tc.in)
-				cmd.SetIn(inStream)
-
-				outStream := bytes.NewBufferString("")
-				cmd.SetOut(outStream)
-
-				errorStream := bytes.NewBufferString("")
-				cmd.SetErr(errorStream)
-
-				err := cmd.Execute()
-				if tc.expectedError != "" {
-					require.EqualError(t, err, tc.expectedError)
-				} else {
-					require.NoError(t, err)
-				}
-
-				output, err := io.ReadAll(outStream)
-				require.NoError(t, err)
-
-				// Usually the error returned from cmd.Execute is the same thing
-				// return on STDERR.
-				errors, err := io.ReadAll(errorStream)
-				require.NoError(t, err)
-
-				t.Logf("STDOUT:\n%s\n", output)
-				t.Logf("STDERR:\n%s\n", errors)
-
-				for _, expectedOutput := range tc.expectedOutput {
-					require.Contains(t, string(output), expectedOutput)
-				}
-			})
-		})
+		testCommand(t, tc)
 	}
 }
 

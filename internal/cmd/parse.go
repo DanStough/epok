@@ -63,7 +63,8 @@ func runParse(cmd *cobra.Command, args []string) error {
 		input = args[0]
 	}
 
-	timestamp, err := parse.String(strings.TrimSpace(input))
+	input = strings.TrimSpace(input)
+	timestamp, err := parse.String(input)
 	if err != nil {
 		return fmt.Errorf("could not parse input: %w", err)
 	}
@@ -74,18 +75,18 @@ func runParse(cmd *cobra.Command, args []string) error {
 		"UTC":   time.UTC,
 	}
 
-	out := newParseOutput(timestamp, locales)
+	out := newParseOutput(input, timestamp, locales)
 	mode, err := getOutput()
 	if err != nil {
 		return err
 	}
 
 	switch mode {
-	case OutputPretty:
+	case outputPretty:
 		return out.writePretty(cmd.OutOrStdout())
-	case OutputSimple:
+	case outputSimple:
 		return out.writeSimple(cmd.OutOrStdout())
-	case OutputJson:
+	case outputJson:
 		return out.writeJson(cmd.OutOrStdout())
 	default:
 		return fmt.Errorf("unexpected output format: %s", mode)
@@ -129,6 +130,7 @@ func readFromStdin(cmd *cobra.Command) (string, error) {
 }
 
 type parseOutput struct {
+	Epoch   string
 	Locales []Locale
 
 	// Derived
@@ -142,24 +144,25 @@ type Locale struct {
 	Time time.Time
 }
 
-func newParseOutput(input time.Time, localesByTz map[string]*time.Location) *parseOutput {
+func newParseOutput(input string, localTime time.Time, localesByTz map[string]*time.Location) *parseOutput {
 	now := time.Now()
 
 	localesByTime := make([]Locale, 0, len(localesByTz))
 	for name, loc := range localesByTz {
 		l := Locale{
 			Name: name,
-			Time: input.In(loc),
+			Time: localTime.In(loc),
 		}
 		localesByTime = append(localesByTime, l)
 	}
 	sort.Slice(localesByTime, func(i, j int) bool { return localesByTime[i].Name < localesByTime[j].Name })
 
 	return &parseOutput{
+		Epoch:   input,
 		Now:     now,
 		Locales: localesByTime,
 
-		relative: now.Sub(input),
+		relative: now.Sub(localTime),
 	}
 }
 

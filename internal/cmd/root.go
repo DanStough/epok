@@ -15,6 +15,8 @@ import (
 )
 
 const (
+
+	//https://www.asciiart.eu/text-to-ascii-art
 	asciiName = `
  /$$$$$$$$                     /$$      
 | $$_____/                    | $$      
@@ -70,7 +72,7 @@ epok parse 1751074598`,
 		"config file (default is $HOME/.epok.yaml)")
 	rootCmd.PersistentFlags().StringP("output", "o", "pretty",
 		"output format. Non-interactive outputs will automatically be downgraded to "+
-			"\"simple\" Valid options are : pretty (default), simple, json")
+			"\"simple\" Valid options are: simple, json, pretty")
 
 	// Groups
 	groups := []*cobra.Group{
@@ -82,6 +84,7 @@ epok parse 1751074598`,
 	rootCmd.AddGroup(groups...)
 
 	// Subcommands
+	rootCmd.AddCommand(newNowCmd())
 	rootCmd.AddCommand(newParseCmd())
 
 	return rootCmd
@@ -129,21 +132,26 @@ func bindFlags(cmd *cobra.Command) {
 	}
 }
 
-type Output string
+type output string
 
 const (
-	OutputJson   Output = "json"
-	OutputPretty Output = "pretty"
-	OutputSimple Output = "simple"
+	outputJson   output = "json"
+	outputPretty output = "pretty"
+	outputSimple output = "simple"
 )
 
-func getOutput() (Output, error) {
+func getOutput() (output, error) {
 	str := viper.GetString("output")
-	output := Output(str)
+	output := output(str)
 
 	switch output {
-	case OutputJson, OutputPretty, OutputSimple:
-		// continue
+	// support shorthands
+	case outputPretty, "p":
+		output = outputPretty
+	case outputSimple, "s":
+		output = outputSimple
+	case outputJson, "j":
+		output = outputJson
 	default:
 		return "", fmt.Errorf("invalid output flag: %s", output)
 	}
@@ -151,8 +159,8 @@ func getOutput() (Output, error) {
 	isInteractive := term.IsTerminal(int(os.Stdout.Fd()))
 
 	// Downgrade styling for non-interactive terminals
-	if !isInteractive && output == OutputPretty {
-		output = OutputSimple
+	if !isInteractive && output == outputPretty {
+		output = outputSimple
 	}
 	return output, nil
 }
