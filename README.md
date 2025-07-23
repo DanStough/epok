@@ -1,14 +1,15 @@
-# epok
-Pronounced "epic-but-with-a-k"
+# epok 
+_Pronounced "epic-but-with-a-k"_
 
 A CLI for working with Unix Timestamps inspired by [epochconverter.com](https://www.epochconverter.com).
-Also kind of like Unix `date`, but for smoother brains.
+Also kind of like Unix `date`, but for smoother brains and folks who like nanosecond timestamps.
 
 Main commands:
-1. **Parse** - read a unix timestamp and return the human readable form. Infers the precision.
-2. **Timezone** (_TBA_)- work with system timezones (view, list, search)
-3. **At** (_TBA_)- convert human readable timestamps and expressions to unix timestamps
-4. **Between** (_TBA_)- find the human readable delta between two timestamps
+1. **`parse`** - read a unix timestamp and return the human readable form. Infers the precision.
+2. **`now`** - generate a unix timestamp for the current instant. Multiple precisions supported.
+2. **`timezone`** (_TBA_)- work with system timezones (view, list, search)
+3. **`at`** (_TBA_)- convert human readable timestamps and expressions to unix timestamps
+4. **`between`** (_TBA_)- find the human readable delta between two timestamps
 
 Built with great open source libraries:
 * [spf13/cobra](https://github.com/spf13/cobra)
@@ -57,7 +58,7 @@ go test -v ./...
   * [X] `-p,--precision` to specify the precision
 * [X] `go install` instructions
 * [X] Version command (handled by `fang`)
-* [ ] Flair: GIF + ~Ascii Art~
+* [ ] Flair: GIF + ~Ascii Art~ + Logo
 * [ ] CI
   * [ ] go releaser
 * [ ] homebrew tap
