@@ -63,8 +63,15 @@ Some things you can do with epok:
   - view and search system timezone information. (TBA)
 
 See the GitHub repository for more information: https://github.com/DanStough/epok`,
-		Example: `# Get the human readable version of an epoch timestampe
-epok parse 1751074598`,
+		Example: `# Get the human readable version of an epoch timestamp
+epok parse 1751074598
+
+# read a timestamp from stdin and print in "simple" mode 
+pbpaste | epok parse --output=simple
+
+# create a timestamp with nanosecond precision and save to the clipboard
+epok now --precision=nanosecond --output=simple | pbcopy
+`,
 	}
 
 	// Persistent Flags
