@@ -36,6 +36,8 @@ tmp/
 
 # Added by goreleaser init:
 dist/
+completions/
+manpages/
 
 # MacOS
 .DS_Store

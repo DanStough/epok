@@ -20,6 +20,13 @@ Built with great open source libraries:
 
 ## Installation
 
+## Homebrew
+
+Install on MacOS and Linux using this homebrew tap:
+```bash
+brew install DanStough/tap/epok
+```
+
 ### Install from Source
 
 You can install the tool directly if you have a Go installation >= 1.21:
@@ -59,9 +66,9 @@ go test -v ./...
 * [X] `go install` instructions
 * [X] Version command (handled by `fang`)
 * [ ] Flair: GIF + ~Ascii Art~ + Logo
-* [ ] CI
-  * [ ] go releaser
-* [ ] homebrew tap
+* [X] CI
+  * [X] go releaser
+* [X] homebrew tap
 
 ### Part 1
 * [ ] Makefile, Taskfile or `Just` to build
