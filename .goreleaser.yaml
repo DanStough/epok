@@ -58,7 +58,6 @@ archives:
     format_overrides:
       - goos: windows
         formats: [zip]
-    wrap_in_directory: true
     files:
       - README*
       - LICENSE*
@@ -69,7 +68,7 @@ checksum:
   name_template: "checksums.txt"
 
 changelog:
-  use: github
+  use: git
   sort: asc
   groups:
     - title: Dependency updates
