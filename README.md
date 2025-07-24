@@ -17,6 +17,7 @@ Built with great open source libraries:
 * [charmbracelet/fang](https://github.com/charmbracelet/fang)
 * [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss)
 * [charmbracelet/vhs (for GIF recording)](https://github.com/charmbracelet/vhs)
+* [goreleaser/goreleaser](https://github.com/goreleaser/goreleaser)
 
 ## Installation
 
