@@ -4,6 +4,8 @@ _Pronounced "epic-but-with-a-k"_
 A CLI for working with Unix Timestamps inspired by [epochconverter.com](https://www.epochconverter.com).
 Also kind of like Unix `date`, but for smoother brains and folks who like nanosecond timestamps.
 
+![Terminal prompt showing generating a timestamp and parsing it with epok](./docs/assets/epok.gif)
+
 Main commands:
 1. **`parse`** - read a unix timestamp and return the human readable form. Infers the precision.
 2. **`now`** - generate a unix timestamp for the current instant. Multiple precisions supported.
@@ -57,7 +59,10 @@ go test -v ./...
 
 ## TODO
 
-### MVP
+<details>
+
+<summary>MVP</summary>
+
 * [X] `parse` command
   * [X]  Outputs UTC and local system time from arg
   * [X]  Outputs UTC and local system time from stdin
@@ -66,12 +71,14 @@ go test -v ./...
   * [X] `-p,--precision` to specify the precision
 * [X] `go install` instructions
 * [X] Version command (handled by `fang`)
-* [ ] Flair: GIF + ~Ascii Art~ + Logo
+* [X] Flair: GIF + Ascii Art
 * [X] CI
   * [X] go releaser
 * [X] homebrew tap
 
-### Part 1
+</details>
+
+### Milestone 1
 * [ ] Makefile, Taskfile or `Just` to build
 * [ ] `parse` command
   * [ ]  timezone flag for parse command to specify additional output zone
@@ -88,8 +95,7 @@ go test -v ./...
 * [X] Output Mode: `json`
 * [ ] golintci + CI
 * [ ]  `at` command for generating a unix timestamp from multiple formats.
-* [ ] Add "preferred timezones" to the config file, which are used when outputing 
-human readable information.
+* [ ] Add "preferred timezones" to the config file, which are used when outputting human-readable information.
 * [ ] batch process multiple timestamps and return tabular delta 
 * [X] ~built-in copy/paste functionality (yes, I know `pbcopy`/`pbpaste` is a thing)~ now I'm thinking this doesn't make much sense if you can read from stdin.
 * [ ] "default" command - alias your favorite command in the tool
