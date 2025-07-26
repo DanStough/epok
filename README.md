@@ -87,7 +87,7 @@ go test -v ./...
   * [ ] show current system timezone
 * [X] Output Mode: `simple` - something that can be copy/pasted
 * [ ] CI
-  * [ ] go test
+  * [X] go test
   * [ ] conventional commits check
 
 ### Future
