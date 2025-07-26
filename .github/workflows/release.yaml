@@ -22,8 +22,11 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Go Test
+        env:
+          # Remove once this feature is stable in Go
+          GOEXPERIMENT: synctest
         run: |
-          go test -v ./...
+           go test -v ./...
 
   goreleaser:
     needs:
