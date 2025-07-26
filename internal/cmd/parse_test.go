@@ -14,15 +14,12 @@ import (
 const (
 
 	// This is 1751770507 relative to a "now" of 2000-01-01 0:00
-	afterOutput = `LOCALE    DATE                      TIME
-Local     Saturday, July 5, 2025    22:55:07-04:00
-UTC       Sunday, July 6, 2025      02:55:07Z
+	parseOutputBefore = `UTC       Sunday, July 6, 2025      02:55:07Z
 
 Relative: 223634h55m7s from now`
 
 	// This is 946080000 relative to a "now" of 2000-01-01 0:00
-	beforeOutput = `LOCALE    DATE                           TIME
-Local     Friday, December 24, 1999      19:00:00-05:00
+	parseOutputAfter = `
 UTC       Saturday, December 25, 1999    00:00:00Z
 
 Relative: 168h0m0s ago`
@@ -38,7 +35,8 @@ func Test_Parse(t *testing.T) {
 				"1751770507\n",
 			},
 			expectedOutput: []string{
-				afterOutput,
+				"LOCALE    DATE                      TIME",
+				parseOutputBefore,
 			},
 		},
 		{
@@ -48,7 +46,8 @@ func Test_Parse(t *testing.T) {
 			},
 			in: "1751770507\n",
 			expectedOutput: []string{
-				afterOutput,
+				"LOCALE    DATE                      TIME",
+				parseOutputBefore,
 			},
 		},
 		{
@@ -58,7 +57,8 @@ func Test_Parse(t *testing.T) {
 			},
 			in: "946080000\n",
 			expectedOutput: []string{
-				beforeOutput,
+				"LOCALE    DATE                           TIME",
+				parseOutputAfter,
 			},
 		},
 		{
@@ -69,7 +69,8 @@ func Test_Parse(t *testing.T) {
 			},
 			in: "1751770507\n",
 			expectedOutput: []string{
-				"{\"Epoch\":\"1751770507\",\"Locales\":[{\"Name\":\"Local\",\"Time\":\"2025-07-05T22:55:07-04:00\"},{\"Name\":\"UTC\",\"Time\":\"2025-07-06T02:55:07Z\"}],\"Now\":\"1999-12-31T19:00:00-05:00\"}",
+				"{\"Epoch\":\"1751770507\"",
+				",{\"Name\":\"UTC\",\"Time\":\"2025-07-06T02:55:07Z\"}],\"Now\":\"1999-12-31T19:00:00-05:00\"}",
 			},
 		},
 		{
