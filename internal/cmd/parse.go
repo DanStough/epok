@@ -156,7 +156,7 @@ type parseOutput struct {
 	Locales []Locale
 
 	// Derived
-	Now time.Time
+	Now time.Time // Now is always UTC time, since it shows up across all JSON outputs.
 
 	relative time.Duration // TODO: make this public so it can be rendered in JSON once we decide on a format
 }
@@ -167,7 +167,7 @@ type Locale struct {
 }
 
 func newParseOutput(input string, localTime time.Time, localesByTz map[string]*time.Location) *parseOutput {
-	now := time.Now()
+	now := time.Now().In(time.UTC)
 
 	localesByTime := make([]Locale, 0, len(localesByTz))
 	for name, loc := range localesByTz {

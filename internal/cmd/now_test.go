@@ -61,7 +61,7 @@ func Test_Now(t *testing.T) {
 				"-ojson",
 			},
 			expectedOutput: []string{
-				"{\"Epoch\":\"946684800\",\"Now\":\"1999-12-31T19:00:00-05:00\"}\n",
+				"{\"Epoch\":\"946684800\",\"Now\":\"2000-01-01T00:00:00Z\"}\n",
 			},
 		},
 		{

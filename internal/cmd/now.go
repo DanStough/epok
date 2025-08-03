@@ -72,7 +72,7 @@ func runNow(cmd *cobra.Command) error {
 	}
 
 	out := &NowOutput{
-		Now:       time.Now(),
+		Now:       time.Now().In(time.UTC),
 		precision: prec,
 	}
 
@@ -98,7 +98,7 @@ var _ json.Marshaler = (*NowOutput)(nil)
 // NowOutput is the data needed to render the result of the now command.
 // It will serialize the time to variable precision.
 type NowOutput struct {
-	Now time.Time
+	Now time.Time // Now is always UTC time, since it shows up across all JSON outputs.
 
 	precision precision
 }
