@@ -80,8 +80,8 @@ go test -v ./...
 
 ### Milestone 1
 * [ ] Makefile, Taskfile or `Just` to build
-* [ ] `parse` command
-  * [ ]  timezone flag for parse command to specify additional output zone
+* [X] `parse` command
+  * [X]  timezone flag for parse command to specify additional output zone
 * [ ] `timezone` command
   * [ ] list command (include source?)
   * [ ] show current system timezone

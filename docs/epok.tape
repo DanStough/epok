@@ -61,7 +61,7 @@ Require epok
 
 Set Shell "bash"
 Set FontSize 32
-Set Width 1600
+Set Width 1800
 Set Height 800
 Set Theme { "name": "Epok", "black": "#535178", "red": "#ef6487", "green": "#5eca89", "yellow": "#fdd877", "blue": "#65aef7", "magenta": "#aa7ff0", "cyan": "#43c1be", "white": "#ffffff", "brightBlack": "#535178", "brightRed": "#ef6487", "brightGreen": "#5eca89", "brightYellow": "#fdd877", "brightBlue": "#65aef7", "brightMagenta": "#aa7ff0", "brightCyan": "#43c1be", "brightWhite": "#ffffff", "background": "#29283b", "foreground": "#b3b0d6", "selection": "#3d3c58", "FF8B00": "#FF8B00" }
 Set WindowBar Colorful
@@ -70,16 +70,16 @@ Set MarginFill "#FF8B00"
 Set BorderRadius 10
 Set TypingSpeed 0.150
 
-Type "# generate a unix timestamp" Sleep 1s Enter Enter
+Type "# generate a unix timestamp" Sleep 3s Enter Enter
 
-Type "epok now" Sleep 1s  Enter Enter
+Type "epok now" Sleep 3s  Enter Enter
 
-Type "# save a nanosecond timestamp to the clipboard" Sleep 1s Enter Enter
+Type "# save a nanosecond timestamp to the clipboard" Sleep 3s Enter Enter
 
-Type "epok now --precision=nanos --output=simple | tee >(pbcopy)" Sleep 1s Enter Enter
+Type "epok now --precision=nanos --output=simple | tee >(pbcopy)" Sleep 3s Enter Enter
 
-Type "# display the human-readable timestamp" Sleep 1s Enter Enter
+Type "# display the human-readable timestamp in several locales" Sleep 3s Enter Enter
 
-Type "pbpaste | epok parse" Sleep 1s Enter
+Type "pbpaste | epok parse -z Big\ Ben=Europe/London,Tokyo\ SkyTree=Asia/Tokyo,Empire\ State=America/New_York" Sleep 3s Enter
 
 Sleep 10s
