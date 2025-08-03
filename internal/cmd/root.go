@@ -139,26 +139,26 @@ func bindFlags(cmd *cobra.Command) {
 	}
 }
 
-type output string
+type outputMode string
 
 const (
-	outputJson   output = "json"
-	outputPretty output = "pretty"
-	outputSimple output = "simple"
+	outputModeJson   outputMode = "json"
+	outputModePretty outputMode = "pretty"
+	outputModeSimple outputMode = "simple"
 )
 
-func getOutput() (output, error) {
+func getOutput() (outputMode, error) {
 	str := viper.GetString("output")
-	output := output(str)
+	output := outputMode(str)
 
 	switch output {
 	// support shorthands
-	case outputPretty, "p":
-		output = outputPretty
-	case outputSimple, "s":
-		output = outputSimple
-	case outputJson, "j":
-		output = outputJson
+	case outputModePretty, "p":
+		output = outputModePretty
+	case outputModeSimple, "s":
+		output = outputModeSimple
+	case outputModeJson, "j":
+		output = outputModeJson
 	default:
 		return "", fmt.Errorf("invalid output flag: %s", output)
 	}
@@ -166,8 +166,8 @@ func getOutput() (output, error) {
 	isInteractive := term.IsTerminal(int(os.Stdout.Fd()))
 
 	// Downgrade styling for non-interactive terminals
-	if !isInteractive && output == outputPretty {
-		output = outputSimple
+	if !isInteractive && output == outputModePretty {
+		output = outputModeSimple
 	}
 	return output, nil
 }

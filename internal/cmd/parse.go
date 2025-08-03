@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/lipgloss/v2/table"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/DanStough/epok/internal/styles"
 	"github.com/DanStough/epok/parse"
@@ -35,7 +36,11 @@ other formats. It can handle timestamps in various precisions and formats.`,
 epok parse 1751074598
 
 # Read from stdin
-pbpaste | epoch parse`,
+pbpaste | epoch parse
+
+# Override displayed timezones
+epok parse 1751074598 -z Big\ Ben=Europe/London,Tokyo\ SkyTree=Asia/Tokyo,Empire\ State=America/New_York
+`,
 
 		Args: cobra.MaximumNArgs(1),
 
@@ -48,6 +53,14 @@ pbpaste | epoch parse`,
 		SilenceUsage: true,
 	}
 
+	defaultLocales := map[string]string{
+		"Local": "Local",
+		"UTC":   "UTC",
+	}
+
+	parseCmd.Flags().StringToStringP("timezone", "z", defaultLocales,
+		"override the map of locales:timezones. "+
+			"Use 'Local' for system time.")
 	return parseCmd
 }
 
@@ -63,30 +76,39 @@ func runParse(cmd *cobra.Command, args []string) error {
 		input = args[0]
 	}
 
+	mode, err := getOutput()
+	if err != nil {
+		return err
+	}
+
+	timezones := viper.GetStringMapString("timezone")
+	if len(timezones) == 0 {
+		return errors.New("must specify at least one locale timezone")
+	}
+
+	locales := make(map[string]*time.Location, len(timezones))
+	for name, timezone := range timezones {
+		loc, err := time.LoadLocation(timezone)
+		if err != nil {
+			return fmt.Errorf("invalid timezone %s for locale %s: %w", timezone, name, err)
+		}
+		locales[name] = loc
+	}
+
 	input = strings.TrimSpace(input)
 	timestamp, err := parse.String(input)
 	if err != nil {
 		return fmt.Errorf("could not parse input: %w", err)
 	}
 
-	// TODO: consider having this load from a config
-	locales := map[string]*time.Location{
-		"Local": time.Local,
-		"UTC":   time.UTC,
-	}
-
 	out := newParseOutput(input, timestamp, locales)
-	mode, err := getOutput()
-	if err != nil {
-		return err
-	}
 
 	switch mode {
-	case outputPretty:
+	case outputModePretty:
 		return out.writePretty(cmd.OutOrStdout())
-	case outputSimple:
+	case outputModeSimple:
 		return out.writeSimple(cmd.OutOrStdout())
-	case outputJson:
+	case outputModeJson:
 		return out.writeJson(cmd.OutOrStdout())
 	default:
 		return fmt.Errorf("unexpected output format: %s", mode)
@@ -208,10 +230,16 @@ func (o *parseOutput) writePretty(w io.Writer) error {
 				style = sheet.Table.OddRow
 			}
 
-			// TODO (dans): these need to change if we make the timezones configurable
+			localeWidth := 8
+			for _, locale := range o.Locales {
+				if len(locale.Name) > localeWidth {
+					localeWidth = len(locale.Name)
+				}
+			}
+
 			switch col {
 			case 0:
-				style = style.Width(8)
+				style = style.Width(localeWidth + 2) // include padding
 			case 1:
 				style = style.Width(32)
 			case 2:

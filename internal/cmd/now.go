@@ -82,11 +82,11 @@ func runNow(cmd *cobra.Command) error {
 	}
 
 	switch mode {
-	case outputPretty:
+	case outputModePretty:
 		return out.writePretty(cmd.OutOrStdout())
-	case outputSimple:
+	case outputModeSimple:
 		return out.writeSimple(cmd.OutOrStdout())
-	case outputJson:
+	case outputModeJson:
 		return out.writeJson(cmd.OutOrStdout())
 	default:
 		return fmt.Errorf("unexpected output format: %s", mode)

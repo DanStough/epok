@@ -36,6 +36,8 @@ func Test_Parse(t *testing.T) {
 			args: []string{
 				"parse",
 				"1751770507\n",
+				"-z", // We need to force an exact timezone for "local" to work across machines with different settings.
+				"Local=America/New_York,UTC=UTC",
 			},
 			expectedOutput: []string{
 				afterOutput,
@@ -45,6 +47,8 @@ func Test_Parse(t *testing.T) {
 			name: "happy path - valid unix timestamp stdin",
 			args: []string{
 				"parse",
+				"-z", // We need to force an exact timezone for "local" to work across machines with different settings.
+				"Local=America/New_York,UTC=UTC",
 			},
 			in: "1751770507\n",
 			expectedOutput: []string{
@@ -55,6 +59,8 @@ func Test_Parse(t *testing.T) {
 			name: "happy path - timestamp is before 'now'",
 			args: []string{
 				"parse",
+				"-z", // We need to force an exact timezone for "local" to work across machines with different settings.
+				"Local=America/New_York,UTC=UTC",
 			},
 			in: "946080000\n",
 			expectedOutput: []string{
@@ -66,6 +72,8 @@ func Test_Parse(t *testing.T) {
 			args: []string{
 				"parse",
 				"-ojson",
+				"-z", // We need to force an exact timezone for "local" to work across machines with different settings.
+				"Local=America/New_York,UTC=UTC",
 			},
 			in: "1751770507\n",
 			expectedOutput: []string{
